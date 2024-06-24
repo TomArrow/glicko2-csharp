@@ -33,9 +33,12 @@ namespace Glicko2
         /// <param name="loser"></param>
         public void AddResult(Rating winner, Rating loser)
         {
-            var result = new Result(winner, loser);
+            lock (_results)
+            {
+                var result = new Result(winner, loser);
 
-            _results.Add(result);
+                _results.Add(result);
+            }
         }
 
         /// <summary>
@@ -45,9 +48,12 @@ namespace Glicko2
         /// <param name="player2"></param>
         public void AddDraw(Rating player1, Rating player2)
         {
-            var result = new Result(player1, player2, true);
+            lock (_results)
+            {
+                var result = new Result(player1, player2, true);
 
-            _results.Add(result);
+                _results.Add(result);
+            }
         }
 
         /// <summary>
@@ -56,7 +62,10 @@ namespace Glicko2
         /// <returns>Count of results recorded so far</returns>
         public int GetResultCount()
         {
-            return _results.Count;
+            lock (_results)
+            {
+                return _results.Count;
+            }
         }
 
         /// <summary>
@@ -68,11 +77,14 @@ namespace Glicko2
         {
             var filteredResults = new List<Result>();
 
-            foreach (var result in _results)
+            lock (_results)
             {
-                if (result.Participated(player))
+                foreach (var result in _results)
                 {
-                    filteredResults.Add(result);
+                    if (result.Participated(player))
+                    {
+                        filteredResults.Add(result);
+                    }
                 }
             }
 
@@ -85,14 +97,17 @@ namespace Glicko2
         /// <returns></returns>
         public IEnumerable<Rating> GetParticipants()
         {
-            // Run through the results and make sure all players have been pushed into the participants set.
-            foreach (var result in _results)
+            lock (_results)
             {
-                _participants.Add(result.GetWinner());
-                _participants.Add(result.GetLoser());
-            }
+                // Run through the results and make sure all players have been pushed into the participants set.
+                foreach (var result in _results)
+                {
+                    _participants.Add(result.GetWinner());
+                    _participants.Add(result.GetLoser());
+                }
 
-            return _participants;
+                return _participants;
+            }
         }
 
         /// <summary>
@@ -102,7 +117,10 @@ namespace Glicko2
         /// <param name="rating"></param>
         public void AddParticipant(Rating rating)
         {
-            _participants.Add(rating);
+            lock (_results)
+            {
+                _participants.Add(rating);
+            }
         }
 
         /// <summary>
@@ -110,7 +128,10 @@ namespace Glicko2
         /// </summary>
         public void Clear()
         {
-            _results.Clear();
+            lock (_results)
+            {
+                _results.Clear();
+            }
         }
     }
 }
