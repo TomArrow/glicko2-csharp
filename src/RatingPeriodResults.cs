@@ -51,6 +51,15 @@ namespace Glicko2
         }
 
         /// <summary>
+        /// Get count of recorded results.
+        /// </summary>
+        /// <returns>Count of results recorded so far</returns>
+        public int GetResultCount()
+        {
+            return _results.Count;
+        }
+
+        /// <summary>
         /// Get a list of the results for a given player.
         /// </summary>
         /// <param name="player"></param>
