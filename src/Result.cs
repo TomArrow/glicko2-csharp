@@ -83,7 +83,7 @@ namespace Glicko2
                 score = PointsForDraw;
             }
 
-            return score * _weight;
+            return score;
         }
 
         /// <summary>
