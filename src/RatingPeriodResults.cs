@@ -31,11 +31,11 @@ namespace Glicko2
         /// </summary>
         /// <param name="winner"></param>
         /// <param name="loser"></param>
-        public void AddResult(Rating winner, Rating loser)
+        public void AddResult(Rating winner, Rating loser, double weight = 1.0)
         {
             lock (_results)
             {
-                var result = new Result(winner, loser);
+                var result = new Result(winner, loser,false, weight);
 
                 _results.Add(result);
             }

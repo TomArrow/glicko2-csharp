@@ -14,6 +14,7 @@ namespace Glicko2
         private readonly bool _isDraw;
         private readonly Rating _winner;
         private readonly Rating _loser;
+        private readonly double _weight;
 
         /// <summary>
         /// Record a new result from a match between two players.
@@ -21,7 +22,7 @@ namespace Glicko2
         /// <param name="winner"></param>
         /// <param name="loser"></param>
         /// <param name="isDraw"></param>
-        public Result(Rating winner, Rating loser, bool isDraw = false)
+        public Result(Rating winner, Rating loser, bool isDraw = false, double weight = 1.0)
         {
             if (!ValidPlayers(winner, loser))
             {
@@ -31,6 +32,7 @@ namespace Glicko2
             _winner = winner;
             _loser = loser;
             _isDraw = isDraw;
+            _weight = weight;
         }
 
         /// <summary>
@@ -65,11 +67,11 @@ namespace Glicko2
 
             if (_winner == player)
             {
-                score = PointsForWin;
+                score = PointsForWin - (1.0 - _weight) * 0.5;
             }
             else if (_loser == player)
             {
-                score = PointsForLoss;
+                score = PointsForLoss + (1.0 - _weight) * 0.5;
             }
             else
             {
@@ -81,7 +83,7 @@ namespace Glicko2
                 score = PointsForDraw;
             }
 
-            return score;
+            return score * _weight;
         }
 
         /// <summary>
