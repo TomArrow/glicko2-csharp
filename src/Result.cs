@@ -67,11 +67,11 @@ namespace Glicko2
 
             if (_winner == player)
             {
-                score = PointsForWin - (1.0 - _weight) * 0.5;
+                score = PointsForWin;// - (1.0 - _weight) * 0.5;
             }
             else if (_loser == player)
             {
-                score = PointsForLoss + (1.0 - _weight) * 0.5;
+                score = PointsForLoss;// + (1.0 - _weight) * 0.5;
             }
             else
             {
@@ -84,6 +84,16 @@ namespace Glicko2
             }
 
             return score;
+        }
+
+        /// <summary>
+        /// Returns the "weight" for a match.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
+        public double GetWeight()
+        {
+            return _weight;
         }
 
         /// <summary>

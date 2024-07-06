@@ -189,7 +189,7 @@ namespace Glicko2
 
             foreach (var result in results)
             {
-                v = v + (
+                v = v + result.GetWeight()*(
                     (Math.Pow(G(result.GetOpponent(player).GetGlicko2RatingDeviation()), 2))
                     *E(player.GetGlicko2Rating(),
                         result.GetOpponent(player).GetGlicko2Rating(),
@@ -227,7 +227,7 @@ namespace Glicko2
             foreach (var result in results)
             {
                 outcomeBasedRating = outcomeBasedRating
-                                     + (G(result.GetOpponent(player).GetGlicko2RatingDeviation())
+                                     + result.GetWeight()* (G(result.GetOpponent(player).GetGlicko2RatingDeviation())
                                         *(result.GetScore(player) - E(
                                             player.GetGlicko2Rating(),
                                             result.GetOpponent(player).GetGlicko2Rating(),
