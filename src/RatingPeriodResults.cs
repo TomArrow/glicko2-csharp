@@ -9,6 +9,7 @@ namespace Glicko2
     {
         private readonly List<Result> _results = new List<Result>();
         private readonly HashSet<Rating> _participants = new HashSet<Rating>();
+        private readonly HashSet<Rating> _activeParticipants = new HashSet<Rating>();
 
         /// <summary>
         /// Create an empty result set.
@@ -37,6 +38,8 @@ namespace Glicko2
             {
                 var result = new Result(winner, loser,false, weight);
 
+                _activeParticipants.Add(winner);
+                _activeParticipants.Add(loser);
                 _results.Add(result);
             }
         }
@@ -52,6 +55,8 @@ namespace Glicko2
             {
                 var result = new Result(player1, player2, true);
 
+                _activeParticipants.Add(player1);
+                _activeParticipants.Add(player2);
                 _results.Add(result);
             }
         }
@@ -65,6 +70,18 @@ namespace Glicko2
             lock (_results)
             {
                 return _results.Count;
+            }
+        }
+
+        /// <summary>
+        /// Get count of participants who were active in this rating period.
+        /// </summary>
+        /// <returns>Count of participants who were active in this rating period</returns>
+        public int GetActiveParticipantCount()
+        {
+            lock (_results)
+            {
+                return _activeParticipants.Count;
             }
         }
 
@@ -131,6 +148,7 @@ namespace Glicko2
             lock (_results)
             {
                 _results.Clear();
+                _activeParticipants.Clear();
             }
         }
     }

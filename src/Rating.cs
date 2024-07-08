@@ -16,10 +16,19 @@
         private double _rating;
         private double _ratingDeviation;
         private double _volatility;
+
+        private double _ratingTmp;
+        private double _ratingDeviationTmp;
+        private double _volatilityTmp;
         /// <summary>
         /// The number of results from which the rating has been calculated.
         /// </summary>
         private int _numberOfResults;
+
+        /// <summary>
+        /// The number of results from which the temporary rating has been calculated.
+        /// </summary>
+        private int _numberOfResultsTmp;
 
         // the following variables are used to hold values temporarily whilst running calculations
         private double _workingRating;
@@ -34,9 +43,9 @@
         public Rating(RatingCalculator ratingSystem)
         {
             _ratingSystem = ratingSystem;
-            _rating = _ratingSystem.GetDefaultRating();
-            _ratingDeviation = _ratingSystem.GetDefaultRatingDeviation();
-            _volatility = ratingSystem.GetDefaultVolatility();
+            _ratingTmp = _rating = _ratingSystem.GetDefaultRating();
+            _ratingDeviationTmp = _ratingDeviation = _ratingSystem.GetDefaultRatingDeviation();
+            _volatilityTmp = _volatility = ratingSystem.GetDefaultVolatility();
         }
 
         /// <summary>
@@ -59,14 +68,15 @@
         /// Return the average skill value of the player.
         /// </summary>
         /// <returns></returns>
-        public double GetRating()
+        public double GetRating(bool temporary = false)
         {
-            return _rating;
+            return temporary ? _ratingTmp : _rating;
         }
 
-        public void SetRating(double rating)
+        public void SetRating(double rating, bool temporary)
         {
-            _rating = rating;
+            if(!temporary) _rating = rating;
+            _ratingTmp = rating;
         }
 
         /// <summary>
@@ -74,38 +84,42 @@
 	    /// to the scale used by the algorithm's internal workings.
         /// </summary>
         /// <returns></returns>
-        public double GetGlicko2Rating()
+        public double GetGlicko2Rating(bool temporary = false)
         {
-            return _ratingSystem.ConvertRatingToGlicko2Scale(_rating);
+            return _ratingSystem.ConvertRatingToGlicko2Scale(temporary ? _ratingTmp : _rating);
         }
 
         /// <summary>
         /// Set the average skill value, taking in a value in Glicko2 scale.
         /// </summary>
         /// <param name="rating"></param>
-        public void SetGlicko2Rating(double rating)
+        public void SetGlicko2Rating(double rating, bool temporary)
         {
-            _rating = _ratingSystem.ConvertRatingToOriginalGlickoScale(rating);
+            double theRating = _ratingSystem.ConvertRatingToOriginalGlickoScale(rating);
+            if (!temporary) _rating = theRating;
+            _ratingTmp = theRating;
         }
 
-        public double GetVolatility()
+        public double GetVolatility(bool temporary = false)
         {
-            return _volatility;
+            return temporary ? _volatilityTmp : _volatility;
         }
 
-        public void SetVolatility(double volatility)
+        public void SetVolatility(double volatility, bool temporary)
         {
-            _volatility = volatility;
+            if(!temporary) _volatility = volatility;
+            _volatilityTmp = volatility;
         }
 
-        public double GetRatingDeviation()
+        public double GetRatingDeviation(bool temporary = false)
         {
-            return _ratingDeviation;
+            return temporary ? _ratingDeviationTmp : _ratingDeviation;
         }
 
-        public void SetRatingDeviation(double ratingDeviation)
+        public void SetRatingDeviation(double ratingDeviation, bool temporary)
         {
-            _ratingDeviation = ratingDeviation;
+            if(!temporary) _ratingDeviation = ratingDeviation;
+            _ratingDeviationTmp = ratingDeviation;
         }
 
         /// <summary>
@@ -122,33 +136,36 @@
         /// Set the rating deviation, taking in a value in Glicko2 scale.
         /// </summary>
         /// <param name="ratingDeviation"></param>
-        public void SetGlicko2RatingDeviation(double ratingDeviation)
+        public void SetGlicko2RatingDeviation(double ratingDeviation, bool temporary)
         {
-            _ratingDeviation = _ratingSystem.ConvertRatingDeviationToOriginalGlickoScale(ratingDeviation);
+            double theRating = _ratingSystem.ConvertRatingDeviationToOriginalGlickoScale(ratingDeviation);
+            if(!temporary) _ratingDeviation = theRating;
+            _ratingDeviationTmp = theRating;
         }
 
         /// <summary>
         /// Used by the calculation engine, to move interim calculations into their "proper" places.
         /// </summary>
-        public void FinaliseRating()
+        public void FinaliseRating(bool temporary)
         {
-            SetGlicko2Rating(_workingRating);
-            SetGlicko2RatingDeviation(_workingRatingDeviation);
-            SetVolatility(_workingVolatility);
+            SetGlicko2Rating(_workingRating, temporary);
+            SetGlicko2RatingDeviation(_workingRatingDeviation, temporary);
+            SetVolatility(_workingVolatility, temporary);
 
             SetWorkingRatingDeviation(0);
             SetWorkingRating(0);
             SetWorkingVolatility(0);
         }
 
-        public int GetNumberOfResults()
+        public int GetNumberOfResults(bool temporary=false)
         {
-            return _numberOfResults;
+            return temporary ? _numberOfResultsTmp : _numberOfResults;
         }
 
-        public void IncrementNumberOfResults(int increment)
+        public void IncrementNumberOfResults(int increment, bool temporary)
         {
-            _numberOfResults = _numberOfResults + increment;
+            if (!temporary) _numberOfResults = _numberOfResults + increment;
+            _numberOfResultsTmp = _numberOfResults + increment;
         }
 
         public void SetWorkingVolatility(double workingVolatility)

@@ -44,13 +44,20 @@ namespace Glicko2
         /// Note that this method will clear the results held in the association result set.
         /// </summary>
         /// <param name="results"></param>
-        public void UpdateRatings(RatingPeriodResults results)
+        /// <param name="temporary">only do temporary ratings (without clearing results)</param>
+        /// <param name="onlyPlayer">only update this specific player, e.g. if we want one player's rating quickly without having to recalc all</param>
+        public void UpdateRatings(RatingPeriodResults results, bool temporary = false, Rating onlyPlayer = null)
         {
+            if(onlyPlayer != null && !temporary)
+            {
+                throw new InvalidOperationException("UpdateRatings: Cannot call UpdateRatings with temporary=false and onlyPlayer provided. Individual player ratings can only be updated with temporary = true");
+            }
             foreach (var player in results.GetParticipants())
             {
+                if (onlyPlayer != null && player != onlyPlayer) continue;
                 if (results.GetResults(player).Count > 0)
                 {
-                    CalculateNewRating(player, results.GetResults(player));
+                    CalculateNewRating(player, results.GetResults(player), temporary);
                 }
                 else
                 {
@@ -66,11 +73,15 @@ namespace Glicko2
             // now iterate through the participants and confirm their new ratings
             foreach (var player in results.GetParticipants())
             {
-                player.FinaliseRating();
+                if (onlyPlayer != null && player != onlyPlayer) continue;
+                player.FinaliseRating(temporary);
             }
 
-            // lastly, clear the result set down in anticipation of the next rating period
-            results.Clear();
+            if (!temporary)
+            {
+                // lastly, clear the result set down in anticipation of the next rating period
+                results.Clear();
+            }
         }
 
         /// <summary>
@@ -78,7 +89,7 @@ namespace Glicko2
         /// </summary>
         /// <param name="player"></param>
         /// <param name="results"></param>
-        private void CalculateNewRating(Rating player, IList<Result> results)
+        private void CalculateNewRating(Rating player, IList<Result> results, bool temporary)
         {
             var phi = player.GetGlicko2RatingDeviation();
             var sigma = player.GetVolatility();
@@ -145,7 +156,7 @@ namespace Glicko2
                 player.GetGlicko2Rating()
                 + (Math.Pow(newPhi, 2)*OutcomeBasedRating(player, results)));
             player.SetWorkingRatingDeviation(newPhi);
-            player.IncrementNumberOfResults(results.Count);
+            player.IncrementNumberOfResults(results.Count,temporary);
         }
 
         private static double F(double x, double delta, double phi, double v, double a, double tau)
@@ -227,8 +238,8 @@ namespace Glicko2
             foreach (var result in results)
             {
                 outcomeBasedRating = outcomeBasedRating
-                                     + result.GetWeight()* (G(result.GetOpponent(player).GetGlicko2RatingDeviation())
-                                        *(result.GetScore(player) - E(
+                                     + result.GetWeight() * (G(result.GetOpponent(player).GetGlicko2RatingDeviation())
+                                        *( result.GetScore(player) - E(
                                             player.GetGlicko2Rating(),
                                             result.GetOpponent(player).GetGlicko2Rating(),
                                             result.GetOpponent(player).GetGlicko2RatingDeviation()))
